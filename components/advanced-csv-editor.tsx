@@ -311,7 +311,7 @@ export default function AdvancedCSVEditor() {
           <AlertDialogHeader>
             <AlertDialogTitle>열 삭제 확인</AlertDialogTitle>
             <AlertDialogDescription>
-              정말로 '{columnToDelete}' 열을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+               정말로 &apos;{columnToDelete}&apos; 열을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
