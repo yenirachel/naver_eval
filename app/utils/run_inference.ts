@@ -1,19 +1,52 @@
-import { ChatCompletionExecutor } from './chatCompletionExecutor'
+interface APIResponse {
+  status: {
+    code: string;
+  };
+  result: {
+    message: {
+      content: string;
+    };
+  };
+}
 
-export async function run_inference(data: any[], system_prompt: string, user_input: string): Promise<any[]> {
+interface DataRow {
+  [key: string]: string;
+  assistant?: string;
+}
+
+interface RequestData {
+  messages: Array<{
+    role: string;
+    content: string;
+  }>;
+  maxTokens: number;
+  temperature: number;
+  topK: number;
+  topP: number;
+  repeatPenalty: number;
+  stopBefore: string[];
+  includeAiFilters: boolean;
+  seed: number;
+}
+
+export async function run_inference(
+  data: DataRow[], 
+  system_prompt: string, 
+  user_input: string
+): Promise<DataRow[]> {
   if (!data || data.length === 0) {
-    throw new Error("No data provided for inference")
+    throw new Error("No data provided for inference");
   }
 
   try {
-    const chat_completion_executor = new ChatCompletionExecutor()
+    const chat_completion_executor = new ChatCompletionExecutor();
 
-    const row = data[0]
+    const row = data[0];
     try {
-      const system = system_prompt ? row[system_prompt] || "" : ""
-      const text = user_input ? row[user_input] || "" : ""
+      const system = system_prompt ? row[system_prompt] ?? "" : "";
+      const text = user_input ? row[user_input] ?? "" : "";
       
-      const request_data = {
+      const request_data: RequestData = {
         messages: [{
           role: "system",
           content: system
@@ -29,27 +62,26 @@ export async function run_inference(data: any[], system_prompt: string, user_inp
         stopBefore: [],
         includeAiFilters: true,
         seed: 0
-      }
+      };
 
-      const response = await chat_completion_executor.execute(request_data)
+      const response = await chat_completion_executor.execute(request_data) as APIResponse;
       
-      console.log('API Response:', JSON.stringify(response, null, 2))  // Log the full response
+      console.log('API Response:', JSON.stringify(response, null, 2));
 
-      if (response && response.status && response.status.code === "20000" && response.result && response.result.message && response.result.message.content) {
-        row['assistant'] = response.result.message.content.trim()
+      if (response?.status?.code === "20000" && response?.result?.message?.content) {
+        row['assistant'] = response.result.message.content.trim();
       } else {
-        console.error('Unexpected response structure:', response)
-        throw new Error("Unexpected response format")
+        console.error('Unexpected response structure:', response);
+        throw new Error("Unexpected response format");
       }
     } catch (error) {
-      console.error(`Error processing row: ${error}`)
-      row['assistant'] = `Error occurred during inference: ${error}`
+      console.error(`Error processing row:`, error);
+      row['assistant'] = `Error occurred during inference: ${error instanceof Error ? error.message : String(error)}`;
     }
 
-    return [row]
+    return [row];
   } catch (error) {
-    console.error(`Error in run_inference: ${error}`)
-    throw error
+    console.error(`Error in run_inference:`, error);
+    throw error;
   }
 }
-
