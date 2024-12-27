@@ -34,14 +34,16 @@ interface APIResponse {
  export async function run_inference(
   data: DataRow[], 
   system_prompt: string, 
-  user_input: string
+  user_input: string,
+  clientId: string,
+  clientSecret: string
  ): Promise<DataRow[]> {
   if (!data || data.length === 0) {
     throw new Error("No data provided for inference")
   }
  
   try {
-    const chat_completion_executor = new ChatCompletionExecutor()
+    const chat_completion_executor = new ChatCompletionExecutor(clientId, clientSecret)
  
     const row = data[0]
     try {
@@ -87,3 +89,4 @@ interface APIResponse {
     throw error
   }
  }
+

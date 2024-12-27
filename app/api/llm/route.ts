@@ -5,7 +5,7 @@ import { augment_data } from '@/app/utils/augment_data'
 
 export async function POST(request: Request) {
   try {
-    const { action, data, systemPrompt, userInput, augmentationFactor, augmentationPrompt, selectedColumn, evaluationSettings } = await request.json()
+    const { action, data, systemPrompt, userInput, augmentationFactor, augmentationPrompt, selectedColumn, evaluationSettings, apiKeys } = await request.json()
     
     if (!action || !data || !Array.isArray(data) || data.length !== 1) {
       return NextResponse.json({ error: 'Invalid request data' }, { status: 400 })
@@ -14,16 +14,16 @@ export async function POST(request: Request) {
     let result
     switch (action) {
       case 'inference':
-        result = await run_inference(data, systemPrompt, userInput)
+        result = await run_inference(data, systemPrompt, userInput, apiKeys.CLIENT_ID, apiKeys.CLIENT_SECRET)
         break
       case 'evaluate':
-        result = await evaluate_llm(data, evaluationSettings)
+        result = await evaluate_llm(data, evaluationSettings, apiKeys.OPENAI_API_KEY)
         break
       case 'augment':
         if (!augmentationFactor || !augmentationPrompt || !selectedColumn) {
           return NextResponse.json({ error: 'Missing augmentation parameters' }, { status: 400 })
         }
-        result = await augment_data(data, augmentationFactor, augmentationPrompt, selectedColumn)
+        result = await augment_data(data, augmentationFactor, augmentationPrompt, selectedColumn, apiKeys.OPENAI_API_KEY)
         break
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })

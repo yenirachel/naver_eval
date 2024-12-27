@@ -34,12 +34,12 @@ export class ChatCompletionExecutor {
   private clientSecret: string;
   private accessToken: string | null = null;
 
-  constructor() {
-    this.host = process.env.HOST || '';
-    this.clientId = process.env.CLIENT_ID || '';
-    this.clientSecret = process.env.CLIENT_SECRET || '';
+  constructor(clientId: string, clientSecret: string) {
+    this.host = "https://api-hyperclova.navercorp.com";
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
     if (!this.host || !this.clientId || !this.clientSecret) {
-      throw new Error("Missing required environment variables");
+      throw new Error("Missing required credentials");
     }
   }
 
@@ -84,3 +84,4 @@ export class ChatCompletionExecutor {
     }
   }
 }
+

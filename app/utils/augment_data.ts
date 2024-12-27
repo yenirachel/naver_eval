@@ -1,12 +1,16 @@
 import { OpenAI } from 'openai'
 
-export async function augment_data(data: any[], augmentationFactor: number, augmentationPrompt: string, selectedColumn: string): Promise<any[]> {
+export async function augment_data(data: any[], augmentationFactor: number, augmentationPrompt: string, selectedColumn: string, openaiApiKey: string): Promise<any[]> {
   if (!data || data.length === 0) {
     throw new Error("No data provided for augmentation")
   }
 
+  if (!openaiApiKey) {
+    throw new Error("OpenAI API key is not provided");
+  }
+
   // Initialize OpenAI client
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  const client = new OpenAI({ apiKey: openaiApiKey });
 
   const augmented_data = []
   for (const row of data) {

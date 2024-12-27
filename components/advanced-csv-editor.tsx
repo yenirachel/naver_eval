@@ -19,6 +19,9 @@ import { AugmentationModal } from './AugmentationModal'
 import { ProgressBar } from './progress-bar'
 import { LLMEvaluationModal } from './LLMEvaluationModal'
 import { ExpandedCellView } from './expanded-cell-view'
+import { Cog } from 'lucide-react'
+import { APIKeys, APIKeySettingsModal } from './APIKeySettingsModal';
+
 
 interface RowData {
  [key: string]: string | undefined;
@@ -73,11 +76,13 @@ export default function AdvancedCSVEditor() {
  } = useColumnManagement()
 
  const {
-   isLoading,
-   error,
-   progress,
-   handleAction
- } = useActionHandlers()
+  isLoading,
+  error,
+  progress,
+  handleAction,
+  apiKeys,
+  setApiKeys
+} = useActionHandlers()
 
  const tableRef = useRef<HTMLDivElement>(null)
 
@@ -87,6 +92,7 @@ export default function AdvancedCSVEditor() {
  const [isVisualizationModalOpen, setIsVisualizationModalOpen] = useState(false)
  const [isLLMEvaluationModalOpen, setIsLLMEvaluationModalOpen] = useState(false)
  const [expandedCell, setExpandedCell] = useState<ExpandedCellType | null>(null)
+ const [isAPIKeyModalOpen, setIsAPIKeyModalOpen] = useState(false)
 
  const handleInference = () => {
    setIsModalOpen(true)
@@ -145,6 +151,14 @@ export default function AdvancedCSVEditor() {
 
  return (
    <div className="container mx-auto p-4">
+     <Button
+       variant="outline"
+       size="icon"
+       className="fixed top-4 right-4"
+       onClick={() => setIsAPIKeyModalOpen(true)}
+     >
+       <Cog className="h-4 w-4" />
+     </Button>
      <h1 className="text-2xl font-bold mb-4">LLM 모델 평가하기</h1>
      <Input type="file" accept=".csv" onChange={handleFileUpload} className="mb-4" />
      {error && (
@@ -357,6 +371,13 @@ export default function AdvancedCSVEditor() {
           onSave={(newContent) => handleCellSave(expandedCell.rowIndex, expandedCell.header, newContent)}
         />
       )}
+      <APIKeySettingsModal
+        isOpen={isAPIKeyModalOpen}
+        onClose={() => setIsAPIKeyModalOpen(false)}
+        onSave={setApiKeys}
+        initialKeys={apiKeys}
+      />
     </div>
   )
 }
+

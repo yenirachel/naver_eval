@@ -17,8 +17,8 @@ interface EvaluatedRow extends DataRow {
   LLM_Eval: string
 }
 
-export async function evaluate_llm(data: DataRow[], evaluationSettings: EvaluationSettings): Promise<EvaluatedRow[]> {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+export async function evaluate_llm(data: DataRow[], evaluationSettings: EvaluationSettings, openaiApiKey: string): Promise<EvaluatedRow[]> {
+  const openai = new OpenAI({ apiKey: openaiApiKey })
 
   const evaluatedData = await Promise.all(data.map(async (row) => {
     try {
@@ -66,3 +66,4 @@ export async function evaluate_llm(data: DataRow[], evaluationSettings: Evaluati
 
   return evaluatedData
 }
+

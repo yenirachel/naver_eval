@@ -1,9 +1,15 @@
 import { useState, useCallback } from 'react'
+import { APIKeys } from '@/components/APIKeySettingsModal';
 
 export function useActionHandlers() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 })
+  const [apiKeys, setApiKeys] = useState<APIKeys>(() => ({
+    OPENAI_API_KEY: '',
+    CLIENT_ID: '',
+    CLIENT_SECRET: ''
+  }))
 
   const handleAction = useCallback(async (
     action: 'inference' | 'evaluate' | 'augment',
@@ -58,6 +64,7 @@ export function useActionHandlers() {
             augmentationPrompt,
             selectedColumn,
             evaluationSettings,
+            apiKeys, // Use apiKeys from state
           }),
         })
 
@@ -136,7 +143,9 @@ export function useActionHandlers() {
     isLoading,
     error,
     progress,
-    handleAction
-  }
+    handleAction,
+    apiKeys,
+    setApiKeys
+  } as const;
 }
 

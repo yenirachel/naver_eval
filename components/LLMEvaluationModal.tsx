@@ -53,7 +53,7 @@ export function LLMEvaluationModal({ isOpen, onClose, onConfirm, headers }: LLME
       newScoreCriteria[i] = scoreCriteria[i] || ''
     }
     setScoreCriteria(newScoreCriteria)
-  }, [scoreCriteria, scoreRange]);
+  }, [scoreRange]) // Only depend on scoreRange, not scoreCriteria
 
   const handleConfirm = () => {
     const settings: EvaluationSettings = {
