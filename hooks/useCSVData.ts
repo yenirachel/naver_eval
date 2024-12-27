@@ -1,12 +1,10 @@
 import { useState, useCallback } from 'react'
-import Papa from 'papaparse'
+import Papa, { ParseResult, ParseConfig } from 'papaparse'
 
-// 기본 필드를 정의
 interface BaseRow {
  [key: string]: string | undefined;
 }
 
-// 확장된 RowData 인터페이스
 interface RowData extends BaseRow {
  LLM_Eval: string;
  Human_Eval: string;
@@ -27,50 +25,67 @@ export function useCSVData() {
  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
    const file = event.target.files?.[0]
    if (file) {
-     Papa.parse(file, {
-       complete: (result) => {
-         if (Array.isArray(result.data) && result.data.length > 0) {
-           const parsedHeaders = result.data[0] as string[]
-           const newHeaders = [...parsedHeaders, 'LLM_Eval', 'Human_Eval']
-           setHeaders(newHeaders)
+     const reader = new FileReader();
+     reader.onload = (e) => {
+       const csv = e.target?.result;
+       if (typeof csv === 'string') {
+         try {
+           const config: ParseConfig<string[]> = {
+             header: false,
+             dynamicTyping: false,
+             skipEmptyLines: true,
+             complete: (results: ParseResult<string[]>) => {
+               if (Array.isArray(results.data) && results.data.length > 0) {
+                 const parsedHeaders = results.data[0]
+                 const newHeaders = [...parsedHeaders, 'LLM_Eval', 'Human_Eval']
+                 setHeaders(newHeaders)
+                 
+                 const parsedData = results.data.slice(1).map((row) => {
+                   const rowData = {
+                     LLM_Eval: '',
+                     Human_Eval: '',
+                   } as RowData
+                   
+                   parsedHeaders.forEach((header, index) => {
+                     rowData[header] = row[index] || ''
+                   })
+                   return rowData
+                 })
+                 
+                 setData(parsedData)
+                 setColumnWidths(Object.fromEntries(newHeaders.map(header => [header, 200])))
+                 
+                 const defaultColumnTypes = Object.fromEntries(newHeaders.map(header => [
+                   header, 
+                   header === 'LLM_Eval' || header === 'Human_Eval' 
+                     ? { type: 'dropdown' as const, scoreRange: 7 }
+                     : { type: 'text' as const }
+                 ]))
+                 setColumnTypes(defaultColumnTypes)
+               } else {
+                 console.error('Invalid CSV format')
+                 setHeaders([])
+                 setData([])
+               }
+             }
+           }
            
-           const parsedData = result.data.slice(1).map((row: string[]) => {
-             const rowData = {
-               LLM_Eval: '',
-               Human_Eval: '',
-             } as RowData
-             
-             parsedHeaders.forEach((header, index) => {
-               rowData[header] = row[index] || ''
-             })
-             return rowData
-           })
-           
-           setData(parsedData)
-           
-           // 열 너비 설정
-           setColumnWidths(Object.fromEntries(newHeaders.map(header => [header, 200])))
-           
-           // 열 타입 설정
-           const defaultColumnTypes = Object.fromEntries(newHeaders.map(header => [
-             header, 
-             header === 'LLM_Eval' || header === 'Human_Eval' 
-               ? { type: 'dropdown' as const, scoreRange: 7 }
-               : { type: 'text' as const }
-           ]))
-           setColumnTypes(defaultColumnTypes)
-         } else {
-           console.error('Invalid CSV format')
+           Papa.parse(csv, config)
+         } catch (error) {
+           console.error('Error parsing CSV:', error)
            setHeaders([])
            setData([])
          }
-       },
-       error: (error) => {
-         console.error('Error parsing CSV:', error)
-         setHeaders([])
-         setData([])
-       },
-     })
+       }
+     };
+
+     reader.onerror = () => {
+       console.error('Error reading file')
+       setHeaders([])
+       setData([])
+     }
+
+     reader.readAsText(file)
    }
  }, [])
 
