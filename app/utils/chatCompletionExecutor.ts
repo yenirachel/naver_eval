@@ -1,5 +1,33 @@
 import axios from 'axios';
 
+interface CompletionRequest {
+  messages: Array<{
+    role: string;
+    content: string;
+  }>;
+  temperature?: number;
+  max_tokens?: number;
+}
+
+interface CompletionResponse {
+  result: {
+    message: {
+      content: string;
+    };
+    usage?: {
+      total_tokens: number;
+      completion_tokens: number;
+      prompt_tokens: number;
+    };
+  };
+}
+
+interface TokenResponse {
+  result: {
+    accessToken: string;
+  };
+}
+
 export class ChatCompletionExecutor {
   private host: string;
   private clientId: string;
@@ -15,9 +43,9 @@ export class ChatCompletionExecutor {
     }
   }
 
-  private async refreshAccessToken() {
+  private async refreshAccessToken(): Promise<void> {
     try {
-      const response = await axios.get(`${this.host}/v1/auth/token?existingToken=true`, {
+      const response = await axios.get<TokenResponse>(`${this.host}/v1/auth/token?existingToken=true`, {
         headers: {
           'Authorization': `Basic ${Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64')}`
         }
@@ -29,13 +57,13 @@ export class ChatCompletionExecutor {
     }
   }
 
-  async execute(completionRequest: any) {
+  async execute(completionRequest: CompletionRequest): Promise<CompletionResponse> {
     if (!this.accessToken) {
       await this.refreshAccessToken();
     }
 
     try {
-      const response = await axios.post(
+      const response = await axios.post<CompletionResponse>(
         `${this.host}/v1/chat-completions/HCX-DASH-001`,
         completionRequest,
         {
@@ -47,8 +75,8 @@ export class ChatCompletionExecutor {
       );
 
       return response.data;
-    } catch (error: any) {
-      if (error.response && error.response.status === 401) {
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
         this.accessToken = null;
         return this.execute(completionRequest);
       }
@@ -56,4 +84,3 @@ export class ChatCompletionExecutor {
     }
   }
 }
-
