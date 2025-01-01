@@ -35,7 +35,7 @@ export class ChatCompletionExecutor {
   private accessToken: string | null = null;
 
   constructor(clientId: string, clientSecret: string) {
-    this.host = "https://api-hyperclova.navercorp.com";
+    this.host = "https://api.hyperclova.ai"; // Updated API endpoint
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     if (!this.host || !this.clientId || !this.clientSecret) {

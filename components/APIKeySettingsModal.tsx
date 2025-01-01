@@ -22,19 +22,20 @@ export function APIKeySettingsModal({ isOpen, onClose, onSave, initialKeys }: AP
   const [keys, setKeys] = useState<APIKeys>(initialKeys);
 
   useEffect(() => {
-    setKeys(initialKeys)
+    setKeys(initialKeys);
   }, [initialKeys])
 
   const handleSave = () => {
     onSave(keys)
-    onClose()
   }
+
+  const isInitialSetup = !initialKeys.OPENAI_API_KEY && !initialKeys.CLIENT_ID && !initialKeys.CLIENT_SECRET;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>API Key Settings</DialogTitle>
+          <DialogTitle>{'API 키 설정'}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -72,7 +73,7 @@ export function APIKeySettingsModal({ isOpen, onClose, onSave, initialKeys }: AP
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleSave}>Save</Button>
+          <Button onClick={handleSave}>{isInitialSetup ? '설정' : '저장'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -10,7 +10,7 @@ import { ColumnSelectModal } from './column-select-modal'
 import { AddColumnModal } from './add-column-modal'
 import { VisualizationColumnSelectModal } from './visualization-column-select-modal'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
-import { X, ArrowUpRight } from 'lucide-react'
+import { X, ArrowUpRight, Key } from 'lucide-react'
 import { useCSVData } from '@/hooks/useCSVData'
 import { useVisualization } from '@/hooks/useVisualization'
 import { useColumnManagement } from '@/hooks/useColumnManagement'
@@ -19,7 +19,6 @@ import { AugmentationModal } from './AugmentationModal'
 import { ProgressBar } from './progress-bar'
 import { LLMEvaluationModal } from './LLMEvaluationModal'
 import { ExpandedCellView } from './expanded-cell-view'
-import { Cog } from 'lucide-react'
 import { APIKeys, APIKeySettingsModal } from './APIKeySettingsModal';
 
 
@@ -84,6 +83,8 @@ export default function AdvancedCSVEditor() {
   setApiKeys
 } = useActionHandlers()
 
+ console.log('API Keys:', apiKeys); // Added log
+
  const tableRef = useRef<HTMLDivElement>(null)
 
  const [isModalOpen, setIsModalOpen] = useState(false)
@@ -92,13 +93,15 @@ export default function AdvancedCSVEditor() {
  const [isVisualizationModalOpen, setIsVisualizationModalOpen] = useState(false)
  const [isLLMEvaluationModalOpen, setIsLLMEvaluationModalOpen] = useState(false)
  const [expandedCell, setExpandedCell] = useState<ExpandedCellType | null>(null)
- const [isAPIKeyModalOpen, setIsAPIKeyModalOpen] = useState(false)
+ const [isAPIKeyModalOpen, setIsAPIKeyModalOpen] = useState(true)
+ const [isAPIKeySet, setIsAPIKeySet] = useState(false)
 
  const handleInference = () => {
    setIsModalOpen(true)
  }
 
  const handleModalConfirm = (systemPrompt: string, userInput: string) => {
+   console.log('Calling handleAction with apiKeys:', apiKeys); // Added log
    handleAction('inference', data, headers, setData, setHeaders, setColumnWidths, setColumnTypes, systemPrompt, userInput)
  }
 
@@ -107,6 +110,7 @@ export default function AdvancedCSVEditor() {
  }
 
  const handleAugmentationConfirm = (augmentationFactor: number, augmentationPrompt: string, selectedColumn: string) => {
+   console.log('Calling handleAction with apiKeys:', apiKeys); // Added log
    setIsAugmentModalOpen(false)
    handleAction('augment', data, headers, setData, setHeaders, setColumnWidths, setColumnTypes, undefined, undefined, augmentationFactor, augmentationPrompt, selectedColumn)
  }
@@ -130,6 +134,7 @@ export default function AdvancedCSVEditor() {
  }, [columnWidths, headers])
 
  const handleLLMEvaluationConfirm = (evaluationSettings: EvaluationSettings) => {
+   console.log('Calling handleAction with apiKeys:', apiKeys); // Added log
    setIsLLMEvaluationModalOpen(false)
    handleAction('evaluate', data, headers, setData, setHeaders, setColumnWidths, setColumnTypes, undefined, undefined, undefined, undefined, undefined, evaluationSettings)
  }
@@ -149,18 +154,44 @@ export default function AdvancedCSVEditor() {
    setExpandedCell(null)
  }
 
+  // API 키 설정 함수
+  const handleAPIKeySave = (keys: APIKeys) => {
+    setApiKeys(keys)
+    setIsAPIKeySet(true)
+    setIsAPIKeyModalOpen(false)
+  }
+
+  // 파일 업로드 핸들러
+  const handleFileUploadWrapper = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (isAPIKeySet) {
+      handleFileUpload(event)
+    } else {
+      setIsAPIKeyModalOpen(true)
+    }
+  }
+
  return (
    <div className="container mx-auto p-4">
      <Button
        variant="outline"
-       size="icon"
-       className="fixed top-4 right-4"
+       size="sm"
+       className="fixed top-4 right-4 bg-blue-500 text-white hover:bg-blue-600"
        onClick={() => setIsAPIKeyModalOpen(true)}
      >
-       <Cog className="h-4 w-4" />
+       <Key className="h-4 w-4 mr-2" />
+       API 키
      </Button>
      <h1 className="text-2xl font-bold mb-4">LLM 모델 평가하기</h1>
-     <Input type="file" accept=".csv" onChange={handleFileUpload} className="mb-4" />
+     <Input 
+       type="file" 
+       accept=".csv" 
+       onChange={handleFileUploadWrapper} 
+       className="mb-4" 
+       disabled={!isAPIKeySet}
+     />
+     {!isAPIKeySet && (
+       <p className="text-red-500 mb-4">API 키를 설정해야 파일을 업로드할 수 있습니다.</p>
+     )}
      {error && (
        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
          <strong className="font-bold">Error: </strong>
@@ -373,8 +404,8 @@ export default function AdvancedCSVEditor() {
       )}
       <APIKeySettingsModal
         isOpen={isAPIKeyModalOpen}
-        onClose={() => setIsAPIKeyModalOpen(false)}
-        onSave={setApiKeys}
+        onClose={() => isAPIKeySet && setIsAPIKeyModalOpen(false)}
+        onSave={handleAPIKeySave}
         initialKeys={apiKeys}
       />
     </div>

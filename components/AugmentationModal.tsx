@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface AugmentationModalProps {
   isOpen: boolean
@@ -29,8 +29,16 @@ export function AugmentationModal({ isOpen, onClose, onConfirm, headers }: Augme
 4. **Diversity**: 표현의 다양성을 통해 새로운 텍스트를 만듭니다.`)
   const [selectedColumn, setSelectedColumn] = useState<string>('')
 
+  useEffect(() => {
+    if (headers.length > 0 && !selectedColumn) {
+      setSelectedColumn(headers[0])
+    }
+  }, [headers, selectedColumn])
+
   const handleConfirm = () => {
-    onConfirm(augmentationFactor, augmentationPrompt, selectedColumn)
+    if (selectedColumn) {
+      onConfirm(augmentationFactor, augmentationPrompt, selectedColumn)
+    }
   }
 
   return (
@@ -56,18 +64,26 @@ export function AugmentationModal({ isOpen, onClose, onConfirm, headers }: Augme
             <Label htmlFor="selectedColumn" className="text-right">
               증강할 열
             </Label>
-            <Select value={selectedColumn} onValueChange={setSelectedColumn}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="열 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                {headers.map((header) => (
-                  <SelectItem key={header} value={header}>
-                    {header}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {headers.length > 0 ? (
+              <Select value={selectedColumn} onValueChange={setSelectedColumn}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="열 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  {headers.map((header) => (
+                    header && <SelectItem key={header} value={header}>
+                      {header}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                value="No columns available"
+                disabled
+                className="col-span-3"
+              />
+            )}
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="augmentationPrompt" className="text-right">
@@ -83,7 +99,7 @@ export function AugmentationModal({ isOpen, onClose, onConfirm, headers }: Augme
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleConfirm}>확인</Button>
+          <Button onClick={handleConfirm} disabled={!selectedColumn}>확인</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
