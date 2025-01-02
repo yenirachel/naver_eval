@@ -29,8 +29,6 @@ interface RequestData {
   seed: number;
 }
 
-import { ChatCompletionExecutor } from './chatCompletionExecutor'
-
 export async function run_inference(
   data: DataRow[], 
   system_prompt: string, 
@@ -43,44 +41,47 @@ export async function run_inference(
   }
 
   try {
-    const chat_completion_executor = new ChatCompletionExecutor(clientId, clientSecret)
-
     const row = data[0]
-    try {
-      const system = system_prompt ? row[system_prompt] ?? "" : ""
-      const text = user_input ? row[user_input] ?? "" : ""
-      
-      const request_data: RequestData = {
-        messages: [{
-          role: "system",
-          content: system
-        }, {
-          role: "user",
-          content: text
-        }],
-        maxTokens: 400,
-        temperature: 0.5,
-        topK: 0,
-        topP: 0.8,
-        repeatPenalty: 5.0,
-        stopBefore: [],
-        includeAiFilters: true,
-        seed: 0
-      }
+    const system = system_prompt ? row[system_prompt] ?? "" : ""
+    const text = user_input ? row[user_input] ?? "" : ""
+    
+    const request_data: RequestData = {
+      messages: [{
+        role: "system",
+        content: system
+      }, {
+        role: "user",
+        content: text
+      }],
+      maxTokens: 400,
+      temperature: 0.5,
+      topK: 0,
+      topP: 0.8,
+      repeatPenalty: 5.0,
+      stopBefore: [],
+      includeAiFilters: true,
+      seed: 0
+    }
 
-      const response = await chat_completion_executor.execute(request_data) as APIResponse
-      
-      console.log('API Response:', JSON.stringify(response, null, 2))
+    const response = await fetch('https://api-hyperclova.navercorp.com/v1/chat-completions/HCX-DASH-001', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${await getAccessToken(clientId, clientSecret)}`
+      },
+      body: JSON.stringify(request_data)
+    })
 
-      if (response?.status?.code === "20000" && response?.result?.message?.content) {
-        row['assistant'] = response.result.message.content.trim()
-      } else {
-        console.error('Unexpected response structure:', response)
-        throw new Error("Unexpected response format")
-      }
-    } catch (error) {
-      console.error(`Error processing row:`, error)
-      row['assistant'] = `Error occurred during inference: ${error instanceof Error ? error.message : String(error)}`
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const result = await response.json() as APIResponse
+
+    if (result?.status?.code === "20000" && result?.result?.message?.content) {
+      row['assistant'] = result.result.message.content.trim()
+    } else {
+      throw new Error("Unexpected response format")
     }
 
     return [row]
@@ -88,5 +89,20 @@ export async function run_inference(
     console.error(`Error in run_inference:`, error)
     throw error
   }
+}
+
+async function getAccessToken(clientId: string, clientSecret: string): Promise<string> {
+  const response = await fetch('https://api-hyperclova.navercorp.com/v1/auth/token?existingToken=true', {
+    headers: {
+      'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to get access token: ${response.status}`)
+  }
+
+  const data = await response.json()
+  return data.result.accessToken
 }
 

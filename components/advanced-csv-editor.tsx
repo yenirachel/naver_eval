@@ -83,7 +83,6 @@ export default function AdvancedCSVEditor() {
   setApiKeys
 } = useActionHandlers()
 
- console.log('API Keys:', apiKeys); // Added log
 
  const tableRef = useRef<HTMLDivElement>(null)
 
@@ -101,7 +100,6 @@ export default function AdvancedCSVEditor() {
  }
 
  const handleModalConfirm = (systemPrompt: string, userInput: string) => {
-   console.log('Calling handleAction with apiKeys:', apiKeys); // Added log
    handleAction('inference', data, headers, setData, setHeaders, setColumnWidths, setColumnTypes, systemPrompt, userInput)
  }
 
@@ -110,7 +108,6 @@ export default function AdvancedCSVEditor() {
  }
 
  const handleAugmentationConfirm = (augmentationFactor: number, augmentationPrompt: string, selectedColumn: string) => {
-   console.log('Calling handleAction with apiKeys:', apiKeys); // Added log
    setIsAugmentModalOpen(false)
    handleAction('augment', data, headers, setData, setHeaders, setColumnWidths, setColumnTypes, undefined, undefined, augmentationFactor, augmentationPrompt, selectedColumn)
  }
@@ -134,7 +131,6 @@ export default function AdvancedCSVEditor() {
  }, [columnWidths, headers])
 
  const handleLLMEvaluationConfirm = (evaluationSettings: EvaluationSettings) => {
-   console.log('Calling handleAction with apiKeys:', apiKeys); // Added log
    setIsLLMEvaluationModalOpen(false)
    handleAction('evaluate', data, headers, setData, setHeaders, setColumnWidths, setColumnTypes, undefined, undefined, undefined, undefined, undefined, evaluationSettings)
  }

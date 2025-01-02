@@ -26,7 +26,6 @@ export function useActionHandlers() {
     selectedColumn?: string,
     evaluationSettings?: any
   ) => {
-    console.log('Action called with API keys:', apiKeys);
     setIsLoading(true)
     setError(null)
     setProgress({ current: 0, total: data.length })

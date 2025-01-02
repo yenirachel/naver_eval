@@ -1,22 +1,19 @@
 import { OpenAI } from 'openai'
 
 export async function augment_data(data: any[], augmentationFactor: number, augmentationPrompt: string, selectedColumn: string, openaiApiKey: string): Promise<any[]> {
+  if (!openaiApiKey) {
+    throw new Error("OpenAI API key is not provided");
+  }
   if (!data || data.length === 0) {
     throw new Error("No data provided for augmentation")
   }
 
-  if (!openaiApiKey) {
-    throw new Error("OpenAI API key is not provided");
-  }
-
-  // Initialize OpenAI client
   const client = new OpenAI({ apiKey: openaiApiKey });
 
   const augmented_data = []
   for (const row of data) {
     augmented_data.push(row)  // Keep the original row
     
-    // Use only the selected column for augmentation
     const text = row[selectedColumn] || ""
     
     for (let i = 0; i < augmentationFactor - 1; i++) {  // Create new rows
@@ -29,10 +26,8 @@ export async function augment_data(data: any[], augmentationFactor: number, augm
           ]
         })
         
-        // Extract the generated content
         const generated_text = completion.choices[0].message.content
 
-        // Create a new row with the augmented data
         const new_row: any = { ...row, is_augmented: "Yes" }
         new_row[selectedColumn] = generated_text
 
@@ -43,7 +38,6 @@ export async function augment_data(data: any[], augmentationFactor: number, augm
     }
   }
 
-  // Add 'is_augmented' column to original data
   for (const row of data) {
     row["is_augmented"] = "No"
   }
