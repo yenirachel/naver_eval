@@ -6,7 +6,23 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [create-next-a
 
 Follow these steps to set up and run this project locally:
 
-### 1. **Clone the Repository**
+### 1. **Set Up a Virtual Environment** (Recommended)
+To keep dependencies isolated, it's recommended to use a virtual environment.
+
+#### (1) **Create a Virtual Environment**
+```bash
+python3 -m venv myenv
+```
+
+#### (2) **Activate the Virtual Environment**
+```bash
+source myenv/bin/activate   # For macOS/Linux
+# .\myenv\Scripts\activate  # For Windows
+```
+
+---
+
+### 2. **Clone the Repository**
 First, clone this repository to your local machine:
 
 ```bash
@@ -16,16 +32,12 @@ cd naver_eval
 
 ---
 
-### 2. **Install Dependencies**
+### 3. **Install Dependencies**
 Make sure you have Node.js installed (version 16 or later is recommended). Install the required packages using one of the following commands:
 
 #### (1) **For Node.js Projects**
 ```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
+npm install next react react-dom
 ```
 
 #### (2) **For Python Projects**
@@ -39,12 +51,12 @@ This will download and set up all the dependencies listed in the respective file
 
 ---
 
-### 3. **Start the Development Server**
+### 4. **Start the Development Server**
 Run the development server with one of these commands:
 
 ```bash
 npm run dev
-
+```
 
 Once the server starts, open your browser and visit:
 
